@@ -2,6 +2,7 @@
 ### GET Something
 GET http://localhost:8080/items/5634 HTTP/1.1
 
+
 ###
 ### PUT Something
 PUT http://localhost:8080/items/5634 HTTP/1.1
@@ -11,9 +12,11 @@ PUT http://localhost:8080/items/5634 HTTP/1.1
     "test" : "Just to see what is returned. muhahaha"
 }
 
+
 ###
 ### DELETE Something
 DELETE http://localhost:8080/items/5634 HTTP/1.1
+
 
 ###
 ### POST Something - Missing Id
@@ -23,6 +26,14 @@ POST http://localhost:8080/api/items/ HTTP/1.1
     "name" : "Something Else",
     "test" : "Should not be added, missing id"
 }
+
+
+###
+### POST Something - Invalid JSON
+POST http://localhost:8080/api/items/ HTTP/1.1
+
+"Just some plain text"
+
 
 ###
 ### POST Something
@@ -34,6 +45,12 @@ POST http://localhost:8080/api/items/ HTTP/1.1
     "test" : "Should be added using the id"
 }
 
+
 ###
 ### GET Something
 GET http://localhost:8080/api/items/new-added-with-post HTTP/1.1
+
+
+###
+### PATCH Something - Not Implemented
+PATCH http://localhost:8080/items/5634 HTTP/1.1

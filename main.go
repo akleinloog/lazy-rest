@@ -70,8 +70,7 @@ func HandleRequest(writer http.ResponseWriter, request *http.Request) {
 	case "DELETE":
 		handleDELETE(writer, request)
 	default:
-		writer.WriteHeader(http.StatusNotImplemented)
-		respond(writer, "Unsupported method: "+request.Method)
+		http.Error(writer, http.StatusText(http.StatusNotImplemented), http.StatusNotImplemented)
 	}
 }
 
@@ -83,8 +82,7 @@ func handleGET(writer http.ResponseWriter, request *http.Request) {
 	if prs {
 		respondWithContent(writer, content)
 	} else {
-		writer.WriteHeader(http.StatusNotFound)
-		respond(writer, "")
+		http.Error(writer, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 	}
 }
 
@@ -99,8 +97,7 @@ func handlePOST(writer http.ResponseWriter, request *http.Request) {
 	err := decoder.Decode(&content)
 	if err != nil {
 		// Invalid JSON
-		writer.WriteHeader(http.StatusBadRequest)
-		respond(writer, "Invalid JSON")
+		http.Error(writer, "Invalid JSON", http.StatusBadRequest)
 	} else {
 
 		id, prs := content["id"]
@@ -111,8 +108,7 @@ func handlePOST(writer http.ResponseWriter, request *http.Request) {
 			writer.WriteHeader(http.StatusCreated)
 			respond(writer, "")
 		} else {
-			writer.WriteHeader(http.StatusBadRequest)
-			respond(writer, "Missing id field")
+			http.Error(writer, "Missing id field", http.StatusBadRequest)
 		}
 	}
 }
@@ -134,8 +130,7 @@ func handlePUT(writer http.ResponseWriter, request *http.Request) {
 		err := json.Unmarshal(body, &f)
 		if err != nil {
 			// Invalid JSON
-			writer.WriteHeader(http.StatusBadRequest)
-			respond(writer, "Invalid JSON")
+			http.Error(writer, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		} else {
 			// Valid JSON
 			memory[key] = f
@@ -155,8 +150,7 @@ func handleDELETE(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusAccepted)
 		respond(writer, "")
 	} else {
-		writer.WriteHeader(http.StatusNotFound)
-		respond(writer, "")
+		http.Error(writer, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 	}
 }
 
