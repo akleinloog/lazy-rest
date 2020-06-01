@@ -17,7 +17,8 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"github.com/akleinloog/lazy-rest/app"
+	"github.com/akleinloog/lazy-rest/util/logger"
 	"net/http"
 	"os"
 )
@@ -29,25 +30,33 @@ var (
 
 func main() {
 
-	currentHost, err := os.Hostname()
+	server := app.Instance()
 
+	currentHost, err := os.Hostname()
 	if err != nil {
-		log.Println("Could not determine host name:", err)
+		server.Logger().Info().Msgf("Could not determine host name:", err)
 	} else {
 		host = currentHost
 	}
 
-	log.Println("Starting Hello Server on " + host)
+	server.Logger().Info().Msgf("Starting Lazy REST Server on " + host)
 
-	http.HandleFunc("/", Hello)
-	http.ListenAndServe(":8080", nil)
+	requestHandler := http.HandlerFunc(HandleRequest)
+
+	http.Handle("/", logger.RequestLogger(requestHandler))
+
+	address := fmt.Sprintf("%s:%d", "", server.Config().Server.Port)
+
+	err = http.ListenAndServe(address, nil)
+	if err != nil {
+		server.Logger().Fatal().Err(err)
+	}
 }
 
 // Hello gives out a simple hello message
-func Hello(w http.ResponseWriter, r *http.Request) {
+func HandleRequest(w http.ResponseWriter, r *http.Request) {
 
 	requestNr++
 	message := fmt.Sprintf("Go Hello %d from %s on %s ./%s\n", requestNr, host, r.Method, r.URL.Path[1:])
-	log.Print(message)
 	fmt.Fprint(w, message)
 }

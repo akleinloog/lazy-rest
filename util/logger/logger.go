@@ -27,7 +27,7 @@ import (
 	"net/http/httptest"
 	"os"
 
-	"github.com/akleinloog/http-logger/config"
+	"github.com/akleinloog/lazy-rest/config"
 
 	"github.com/rs/zerolog"
 )
@@ -172,10 +172,7 @@ func RequestLogger(next http.Handler) http.Handler {
 				Msg("")
 		}()
 
-		rec.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		rec.Header().Set("X-Content-Type-Options", "nosniff")
-		rec.Write([]byte(""))
-
+		next.ServeHTTP(rec, request)
 	}
 
 	return http.HandlerFunc(fn)
