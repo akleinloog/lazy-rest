@@ -12,7 +12,7 @@ FROM scratch
 ARG VERSION
 ARG VCS_REF
 LABEL maintainer="arnoud@kleinloog.ch" \
-    description="Lazy REST in Go" \
+    description="Lazy REST Server in Go" \
     version=${VERSION} \
     vcs_url="https://github.com/akleinloog/lazy-rest" \
     vcs-ref=${VCS_REF}
