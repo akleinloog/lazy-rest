@@ -1,0 +1,11 @@
+.git
+.idea
+.vscode
+docker
+test
+.gitignore
+docker-compose*
+lazy-rest*
+LICENSE
+README.md
+deploy.sh

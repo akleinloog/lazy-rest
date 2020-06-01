@@ -25,7 +25,7 @@ func main() {
 	log.Println("Starting Hello Server on " + host)
 
 	http.HandleFunc("/", Hello)
-	http.ListenAndServe(":80", nil)
+	http.ListenAndServe(":8080", nil)
 }
 
 // Hello gives out a simple hello message

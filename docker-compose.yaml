@@ -1,0 +1,10 @@
+version: '3.7'
+
+services:
+  server:
+    container_name: lazy-rest
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    ports:
+      - 8080:8080
