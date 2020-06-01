@@ -1,0 +1,8 @@
+# Go compiled output
+lazy-rest
+
+# MacOs files
+.DS_Store
+
+# Goland files
+.idea
