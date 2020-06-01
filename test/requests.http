@@ -1,0 +1,39 @@
+###
+### GET Something
+GET http://localhost:8080/items/5634 HTTP/1.1
+
+###
+### PUT Something
+PUT http://localhost:8080/items/5634 HTTP/1.1
+
+{
+    "name" : "Something",
+    "test" : "Just to see what is returned. muhahaha"
+}
+
+###
+### DELETE Something
+DELETE http://localhost:8080/items/5634 HTTP/1.1
+
+###
+### POST Something - Missing Id
+POST http://localhost:8080/api/items/ HTTP/1.1
+
+{
+    "name" : "Something Else",
+    "test" : "Should not be added, missing id"
+}
+
+###
+### POST Something
+POST http://localhost:8080/api/items/ HTTP/1.1
+
+{
+    "id" : "new-added-with-post",
+    "name" : "Something Entirely Different",
+    "test" : "Should be added using the id"
+}
+
+###
+### GET Something
+GET http://localhost:8080/api/items/new-added-with-post HTTP/1.1

@@ -16,21 +16,25 @@ limitations under the License.
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/akleinloog/lazy-rest/app"
 	"github.com/akleinloog/lazy-rest/util/logger"
+	"io/ioutil"
 	"net/http"
 	"os"
 )
 
 var (
-	requestNr int64  = 0
-	host      string = "unknown"
+	requestNr int64                  = 0
+	host      string                 = "unknown"
+	memory    map[string]interface{} = make(map[string]interface{})
+	server    *app.Server
 )
 
 func main() {
 
-	server := app.Instance()
+	server = app.Instance()
 
 	currentHost, err := os.Hostname()
 	if err != nil {
@@ -54,9 +58,126 @@ func main() {
 }
 
 // Hello gives out a simple hello message
-func HandleRequest(w http.ResponseWriter, r *http.Request) {
+func HandleRequest(writer http.ResponseWriter, request *http.Request) {
 
-	requestNr++
-	message := fmt.Sprintf("Go Hello %d from %s on %s ./%s\n", requestNr, host, r.Method, r.URL.Path[1:])
-	fmt.Fprint(w, message)
+	switch request.Method {
+	case "GET":
+		handleGET(writer, request)
+	case "POST":
+		handlePOST(writer, request)
+	case "PUT":
+		handlePUT(writer, request)
+	case "DELETE":
+		handleDELETE(writer, request)
+	default:
+		writer.WriteHeader(http.StatusNotImplemented)
+		respond(writer, "Unsupported method: "+request.Method)
+	}
+}
+
+func handleGET(writer http.ResponseWriter, request *http.Request) {
+
+	key := request.URL.Path[1:]
+
+	content, prs := memory[key]
+	if prs {
+		respondWithContent(writer, content)
+	} else {
+		writer.WriteHeader(http.StatusNotFound)
+		respond(writer, "")
+	}
+}
+
+func handlePOST(writer http.ResponseWriter, request *http.Request) {
+
+	key := request.URL.Path[1:]
+
+	decoder := json.NewDecoder(request.Body)
+
+	var content map[string]interface{}
+
+	err := decoder.Decode(&content)
+	if err != nil {
+		// Invalid JSON
+		writer.WriteHeader(http.StatusBadRequest)
+		respond(writer, "Invalid JSON")
+	} else {
+
+		id, prs := content["id"]
+
+		if prs {
+			contentKey := fmt.Sprintf("%s%s", key, id)
+			memory[contentKey] = content
+			writer.WriteHeader(http.StatusCreated)
+			respond(writer, "")
+		} else {
+			writer.WriteHeader(http.StatusBadRequest)
+			respond(writer, "Missing id field")
+		}
+	}
+}
+
+func handlePUT(writer http.ResponseWriter, request *http.Request) {
+
+	key := request.URL.Path[1:]
+
+	body, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		server.Logger().Error().Err(err).Msg("Unable to read request body")
+		writer.WriteHeader(http.StatusBadRequest)
+		respond(writer, "")
+	} else {
+		// memory[key] = body
+		// contentType := request.Header.Get("content-type")
+		//
+		var f interface{}
+		err := json.Unmarshal(body, &f)
+		if err != nil {
+			// Invalid JSON
+			writer.WriteHeader(http.StatusBadRequest)
+			respond(writer, "Invalid JSON")
+		} else {
+			// Valid JSON
+			memory[key] = f
+			writer.WriteHeader(http.StatusAccepted)
+			respond(writer, "")
+		}
+	}
+}
+
+func handleDELETE(writer http.ResponseWriter, request *http.Request) {
+
+	key := request.URL.Path[1:]
+
+	_, prs := memory[key]
+	if prs {
+		delete(memory, key)
+		writer.WriteHeader(http.StatusAccepted)
+		respond(writer, "")
+	} else {
+		writer.WriteHeader(http.StatusNotFound)
+		respond(writer, "")
+	}
+}
+
+func respond(writer http.ResponseWriter, message string) {
+
+	_, err := fmt.Fprint(writer, message)
+	if err != nil {
+		server.Logger().Error().Err(err).Msg("Error while responding to request")
+	}
+}
+
+func respondWithContent(writer http.ResponseWriter, message interface{}) {
+
+	//content, err := json.Marshal(message)
+	//if err != nil {
+	//	server.Logger().Error().Err(err).Msg("Error while unmarshalling json")
+	//}
+
+	encoder := json.NewEncoder(writer)
+	err := encoder.Encode(message)
+	if err != nil {
+		server.Logger().Error().Err(err).Msg("Error while responding to request")
+	}
 }
