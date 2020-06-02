@@ -168,7 +168,8 @@ func respondWithContent(writer http.ResponseWriter, message interface{}) {
 	//if err != nil {
 	//	server.Logger().Error().Err(err).Msg("Error while unmarshalling json")
 	//}
-
+	//content := fmt.Sprintf("%s", message)
+	// _, err := fmt.Fprint(writer, message)
 	encoder := json.NewEncoder(writer)
 	err := encoder.Encode(message)
 	if err != nil {

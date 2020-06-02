@@ -52,5 +52,10 @@ GET http://localhost:8080/api/items/new-added-with-post HTTP/1.1
 
 
 ###
+### GET Something
+GET http://localhost:8080/api/items/ HTTP/1.1
+
+
+###
 ### PATCH Something - Not Implemented
 PATCH http://localhost:8080/items/5634 HTTP/1.1
