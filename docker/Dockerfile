@@ -5,7 +5,7 @@ WORKDIR /go/src/lazy-rest
 ADD ./go.* ./
 RUN go mod download
 ADD ./ .
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o server
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o lazy-rest
 
 # Deploy Stage
 FROM scratch
@@ -16,6 +16,6 @@ LABEL maintainer="arnoud@kleinloog.ch" \
     version=${VERSION} \
     vcs_url="https://github.com/akleinloog/lazy-rest" \
     vcs-ref=${VCS_REF}
-COPY --from=builder /go/src/lazy-rest/server .
+COPY --from=builder /go/src/lazy-rest/lazy-rest .
 EXPOSE 8080
-CMD ["./server"]
+CMD ["./lazy-rest", "serve"]
