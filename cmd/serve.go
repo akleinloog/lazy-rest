@@ -20,11 +20,11 @@ import (
 	"fmt"
 	"github.com/akleinloog/lazy-rest/app"
 	"github.com/akleinloog/lazy-rest/util/logger"
+	"github.com/spf13/cobra"
 	"io/ioutil"
 	"net/http"
 	"os"
-
-	"github.com/spf13/cobra"
+	"strings"
 )
 
 var (
@@ -92,7 +92,7 @@ func HandleRequest(writer http.ResponseWriter, request *http.Request) {
 
 func handleGET(writer http.ResponseWriter, request *http.Request) {
 
-	key := request.URL.Path[1:]
+	key := getURLWithSlashAddedIfNeeded(request)
 
 	content, prs := memory[key]
 	if prs {
@@ -104,7 +104,7 @@ func handleGET(writer http.ResponseWriter, request *http.Request) {
 
 func handlePOST(writer http.ResponseWriter, request *http.Request) {
 
-	key := request.URL.Path[1:]
+	key := getURLWithSlashRemovedIfNeeded(request)
 
 	decoder := json.NewDecoder(request.Body)
 
@@ -131,7 +131,7 @@ func handlePOST(writer http.ResponseWriter, request *http.Request) {
 
 func handlePUT(writer http.ResponseWriter, request *http.Request) {
 
-	key := request.URL.Path[1:]
+	key := getURLWithSlashAddedIfNeeded(request)
 
 	body, err := ioutil.ReadAll(request.Body)
 	if err != nil {
@@ -158,7 +158,7 @@ func handlePUT(writer http.ResponseWriter, request *http.Request) {
 
 func handleDELETE(writer http.ResponseWriter, request *http.Request) {
 
-	key := request.URL.Path[1:]
+	key := getURLWithSlashAddedIfNeeded(request)
 
 	_, prs := memory[key]
 	if prs {
@@ -191,4 +191,20 @@ func respondWithContent(writer http.ResponseWriter, message interface{}) {
 	if err != nil {
 		server.Logger().Error().Err(err).Msg("Error while responding to request")
 	}
+}
+
+func getURLWithSlashAddedIfNeeded(request *http.Request) string {
+	key := request.URL.Path[1:]
+	if strings.HasSuffix(key, "/") {
+		return strings.TrimSuffix(key, "/")
+	}
+	return key
+}
+
+func getURLWithSlashRemovedIfNeeded(request *http.Request) string {
+	key := request.URL.Path[1:]
+	if !strings.HasSuffix(key, "/") {
+		return key + "/"
+	}
+	return key
 }

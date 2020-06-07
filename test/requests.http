@@ -12,10 +12,23 @@ PUT http://localhost:8080/items/5634 HTTP/1.1
     "test" : "Just to see what is returned. muhahaha"
 }
 
+###
+### PUT Something with extra slash
+PUT http://localhost:8080/items/5634/ HTTP/1.1
+
+{
+    "name" : "Something",
+    "test" : "Just to see if ot works with extra slash"
+}
+
 
 ###
 ### DELETE Something
 DELETE http://localhost:8080/items/5634 HTTP/1.1
+
+###
+### DELETE Something with extra slash
+DELETE http://localhost:8080/items/5634/ HTTP/1.1
 
 
 ###
@@ -59,3 +72,45 @@ GET http://localhost:8080/api/items/ HTTP/1.1
 ###
 ### PATCH Something - Not Implemented
 PATCH http://localhost:8080/items/5634 HTTP/1.1
+
+
+###
+### POST without ending /
+POST http://localhost:8080/api/items HTTP/1.1
+
+{
+    "id" : "item-001",
+    "name" : "Item no Slash",
+    "test" : "Posted without slash"
+}
+
+###
+### GET with slash should return it
+GET http://localhost:8080/api/items/item-001 HTTP/1.1
+
+
+###
+### GET with slash should not return it
+GET http://localhost:8080/api/itemsitem-001 HTTP/1.1
+
+###
+### GET with extra slash should also return it
+GET http://localhost:8080/api/items/item-001/ HTTP/1.1
+
+
+
+###
+### GET test case 001
+GET http://192.168.64.20:31331/tests/testcase-001 HTTP/1.1
+
+
+
+###
+### POST test case 001
+POST http://192.168.64.20:31331/tests/ HTTP/1.1
+
+{
+    "id" : "testcase-001",
+    "name" : "First Test Case",
+    "description" : "Just a simple test case"
+}
