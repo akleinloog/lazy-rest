@@ -16,6 +16,7 @@ limitations under the License.
 package cmd
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/akleinloog/lazy-rest/app"
@@ -107,27 +108,60 @@ func handlePOST(writer http.ResponseWriter, request *http.Request) {
 
 	key := getURLWithSlashRemovedIfNeeded(request)
 
+	body, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		server.Logger().Error().Err(err).Msg("Invalid Request Body received")
+		http.Error(writer, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+
+	x := bytes.TrimLeft(body, " \t\r\n")
+
+	isArray := len(x) > 0 && x[0] == '['
+	// isObject := len(x) > 0 && x[0] == '{'
+
 	decoder := json.NewDecoder(request.Body)
 
-	var content map[string]interface{}
+	if isArray {
+		decoder.Token()
+	}
 
-	err := decoder.Decode(&content)
-	if err != nil {
-		// Invalid JSON
-		http.Error(writer, "Invalid JSON", http.StatusBadRequest)
-	} else {
+	var itemsInRequest = make(map[string]interface{})
 
-		id, prs := content["id"]
+	for decoder.More() {
 
-		if prs {
-			contentKey := fmt.Sprintf("%s%s", key, id)
-			memory[contentKey] = content
-			writer.WriteHeader(http.StatusCreated)
-			respond(writer, "")
+		var content map[string]interface{}
+
+		err := decoder.Decode(&content)
+
+		if err != nil {
+
+			server.Logger().Error().Err(err).Msg("Invalid JSON received")
+			http.Error(writer, "Invalid JSON", http.StatusBadRequest)
+			return
+
 		} else {
-			http.Error(writer, "Missing id field", http.StatusBadRequest)
+
+			id, prs := content["id"]
+
+			if prs {
+				contentKey := fmt.Sprintf("%s%s", key, id)
+				itemsInRequest[contentKey] = content
+			} else {
+				http.Error(writer, "Missing id field", http.StatusBadRequest)
+				return
+			}
 		}
 	}
+
+	for key, element := range itemsInRequest {
+		memory[key] = element
+	}
+
+	writer.WriteHeader(http.StatusCreated)
+	respond(writer, fmt.Sprintf("Created %d items", len(itemsInRequest)))
 }
 
 func handlePUT(writer http.ResponseWriter, request *http.Request) {
@@ -162,7 +196,7 @@ func handlePUT(writer http.ResponseWriter, request *http.Request) {
 	contentId, prs := jsonContent["id"]
 	if prs {
 		if contentId != resourceId {
-			message := fmt.Sprintf("Mismatch between id %s and address %s", contentId, resourceId)
+			message := fmt.Sprintf("Mismatch between id field `%s` and address `%s`", contentId, resourceId)
 			http.Error(writer, message, http.StatusBadRequest)
 			return
 		}

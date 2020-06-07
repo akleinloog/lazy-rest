@@ -67,10 +67,43 @@ POST http://localhost:8080/api/items/ HTTP/1.1
     "test" : "Should be added using the id"
 }
 
-
 ###
 ### GET Something
 GET http://localhost:8080/api/items/new-added-with-post HTTP/1.1
+
+
+###
+### POST Multiple items
+POST http://localhost:8080/api/items/ HTTP/1.1
+
+[
+    {
+        "id" : "item-001",
+        "name" : "First of 3"
+    },
+    {
+        "id" : "item-002",
+        "name" : "Second of 2",
+        "second" : "To show flexibility"
+    },
+    {
+        "id" : "item-003",
+        "name" : "Third of 3",
+        "third" : "We use different schema"
+    }
+]
+
+###
+### GET item 1
+GET http://localhost:8080/api/items/item-001 HTTP/1.1
+
+###
+### GET item 2
+GET http://localhost:8080/api/items/item-002 HTTP/1.1
+
+###
+### GET item 3
+GET http://localhost:8080/api/items/item-003 HTTP/1.1
 
 
 ###
