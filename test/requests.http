@@ -41,12 +41,12 @@ DELETE http://localhost:8080/items/5634/ HTTP/1.1
 
 
 ###
-### POST Something - Missing Id
+### POST Something - Missing Id, will be added with random id
 POST http://localhost:8080/api/items/ HTTP/1.1
 
 {
     "name" : "Something Else",
-    "test" : "Should not be added, missing id"
+    "test" : "Will be added with random id"
 }
 
 

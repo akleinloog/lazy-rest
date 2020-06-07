@@ -17,11 +17,14 @@ package cmd
 
 import (
 	"bytes"
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/akleinloog/lazy-rest/app"
 	"github.com/akleinloog/lazy-rest/util/logger"
 	"github.com/spf13/cobra"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -174,14 +177,13 @@ func handlePOST(writer http.ResponseWriter, request *http.Request) {
 		} else {
 
 			id, prs := content["id"]
-
-			if prs {
-				contentKey := fmt.Sprintf("%s%s", key, id)
-				itemsInRequest[contentKey] = content
-			} else {
-				http.Error(writer, "Missing id field", http.StatusBadRequest)
-				return
+			if !prs {
+				id = createId()
+				content["id"] = id
 			}
+
+			contentKey := fmt.Sprintf("%s%s", key, id)
+			itemsInRequest[contentKey] = content
 		}
 	}
 
@@ -290,4 +292,16 @@ func getURLWithSlashRemovedIfNeeded(request *http.Request) string {
 		return strings.TrimSuffix(key, "/")
 	}
 	return key
+}
+
+func createId() string {
+
+	random := make([]byte, 10)
+	n, err := io.ReadFull(rand.Reader, random)
+	if n != len(random) || err != nil {
+		server.Logger().Error().Err(err).Msg("Error while creating if")
+		panic(err)
+	}
+
+	return base64.RawURLEncoding.EncodeToString(random)
 }
