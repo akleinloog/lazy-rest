@@ -94,11 +94,31 @@ func HandleRequest(writer http.ResponseWriter, request *http.Request) {
 
 func handleGET(writer http.ResponseWriter, request *http.Request) {
 
-	key := getURLWithSlashAddedIfNeeded(request)
+	key := getURLWithSlashRemovedIfNeeded(request)
 
 	content, prs := memory[key]
 	if prs {
 		respondWithContent(writer, content)
+		return
+	}
+
+	var itemsInCollection = make(map[string]interface{})
+
+	for location, item := range memory {
+		if strings.HasPrefix(location, key) {
+			var subLocation = strings.TrimPrefix(location, key+"/")
+			if path.Base(subLocation) == subLocation {
+				itemsInCollection[location] = item
+			}
+		}
+	}
+
+	if len(itemsInCollection) > 0 {
+		contentItems := make([]interface{}, 0, len(itemsInCollection))
+		for _, item := range itemsInCollection {
+			contentItems = append(contentItems, item)
+		}
+		respondWithContent(writer, contentItems)
 	} else {
 		http.Error(writer, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 	}
@@ -106,7 +126,7 @@ func handleGET(writer http.ResponseWriter, request *http.Request) {
 
 func handlePOST(writer http.ResponseWriter, request *http.Request) {
 
-	key := getURLWithSlashRemovedIfNeeded(request)
+	key := getURLWithSlashAddedIfNeeded(request)
 
 	body, err := ioutil.ReadAll(request.Body)
 	if err != nil {
@@ -166,7 +186,7 @@ func handlePOST(writer http.ResponseWriter, request *http.Request) {
 
 func handlePUT(writer http.ResponseWriter, request *http.Request) {
 
-	key := getURLWithSlashAddedIfNeeded(request)
+	key := getURLWithSlashRemovedIfNeeded(request)
 
 	body, err := ioutil.ReadAll(request.Body)
 	if err != nil {
@@ -212,7 +232,7 @@ func handlePUT(writer http.ResponseWriter, request *http.Request) {
 
 func handleDELETE(writer http.ResponseWriter, request *http.Request) {
 
-	key := getURLWithSlashAddedIfNeeded(request)
+	key := getURLWithSlashRemovedIfNeeded(request)
 
 	_, prs := memory[key]
 	if prs {
@@ -249,16 +269,16 @@ func respondWithContent(writer http.ResponseWriter, message interface{}) {
 
 func getURLWithSlashAddedIfNeeded(request *http.Request) string {
 	key := request.URL.Path[1:]
-	if strings.HasSuffix(key, "/") {
-		return strings.TrimSuffix(key, "/")
+	if !strings.HasSuffix(key, "/") {
+		return key + "/"
 	}
 	return key
 }
 
 func getURLWithSlashRemovedIfNeeded(request *http.Request) string {
 	key := request.URL.Path[1:]
-	if !strings.HasSuffix(key, "/") {
-		return key + "/"
+	if strings.HasSuffix(key, "/") {
+		return strings.TrimSuffix(key, "/")
 	}
 	return key
 }
