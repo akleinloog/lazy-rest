@@ -68,7 +68,6 @@ func New(config *config.Config) *Logger {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 
 	logLevel := zerolog.InfoLevel
-
 	if config.Debug {
 		logLevel = zerolog.DebugLevel
 	}

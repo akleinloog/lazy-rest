@@ -98,6 +98,7 @@ func handleGET(writer http.ResponseWriter, request *http.Request) {
 
 	content, prs := memory[key]
 	if prs {
+		// Request matches a single item, we can return it
 		respondWithContent(writer, content)
 		return
 	}
@@ -137,6 +138,7 @@ func handlePOST(writer http.ResponseWriter, request *http.Request) {
 
 	request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 
+	// Remove whitespace
 	x := bytes.TrimLeft(body, " \t\r\n")
 
 	isArray := len(x) > 0 && x[0] == '['
@@ -145,7 +147,14 @@ func handlePOST(writer http.ResponseWriter, request *http.Request) {
 	decoder := json.NewDecoder(request.Body)
 
 	if isArray {
-		decoder.Token()
+		// read the array token first
+		// then the decoder will iterate over the items in the array
+		_, err = decoder.Token()
+		if err != nil {
+			server.Logger().Error().Err(err).Msg("Error parsing JSON token")
+			http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
 	}
 
 	var itemsInRequest = make(map[string]interface{})
