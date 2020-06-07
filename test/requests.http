@@ -21,6 +21,15 @@ PUT http://localhost:8080/items/5634/ HTTP/1.1
     "test" : "Just to see if ot works with extra slash"
 }
 
+###
+### PUT with mismatch between id and address should give error
+PUT http://localhost:8080/items/5634 HTTP/1.1
+
+{
+    "id" : "mismatch-with-address",
+    "name" : "Something",
+    "test" : "Just to see what is returned. muhahaha"
+}
 
 ###
 ### DELETE Something
