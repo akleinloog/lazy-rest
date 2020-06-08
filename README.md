@@ -13,6 +13,8 @@ See the [tests](./test/requests.http) for some examples.
 
 The image is available on docker hub [here](https://hub.docker.com/r/akleinloog/lazy-rest)
 
+docker run -p 8080:8080 --name my-api akleinloog/lazy-rest:v0.2.1
+
 
 ## Version tagging
 
