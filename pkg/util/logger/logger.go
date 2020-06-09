@@ -130,7 +130,7 @@ func initRequestEntry(request *http.Request) *RequestLogEntry {
 // request ID if one is provided.
 //
 // Alternatively, look at https://github.com/goware/httplog for a more in-depth
-// http logger with structured logging support.
+// http-handling logger with structured logging support.
 func RequestLogger(next http.Handler) http.Handler {
 
 	fn := func(writer http.ResponseWriter, request *http.Request) {

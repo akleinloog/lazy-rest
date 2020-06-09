@@ -156,3 +156,27 @@ POST http://192.168.64.20:31331/tests/ HTTP/1.1
     "name" : "First Test Case",
     "description" : "Just a simple test case"
 }
+
+
+###
+### GET test case 001
+GET http://dev.my-health.cloud/api/tests/testcase-001 HTTP/1.1
+
+
+###
+### GET test case 001
+GET http://demo.kleinloog.ch/api/tests/testcase-001 HTTP/1.1
+
+
+###
+### GET hello repo hooks
+GET http://demo.kleinloog.ch/api/github/hello HTTP/1.1
+
+###
+### GET http-logger repo hooks
+GET http://demo.kleinloog.ch/api/github/http-logger HTTP/1.1
+
+###
+### GET lazy-rest repo hooks
+GET http://demo.kleinloog.ch/api/github/lazy-rest HTTP/1.1
+

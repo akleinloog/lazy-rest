@@ -17,7 +17,7 @@ package app
 
 import (
 	"github.com/akleinloog/lazy-rest/config"
-	"github.com/akleinloog/lazy-rest/util/logger"
+	"github.com/akleinloog/lazy-rest/pkg/util/logger"
 )
 
 // Server represents the overall application.
