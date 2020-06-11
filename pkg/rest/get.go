@@ -9,14 +9,24 @@ func handleGET(writer http.ResponseWriter, request *http.Request) {
 
 	key := getURLWithSlashRemovedIfNeeded(request)
 
-	content, prs := storage.Get(key)
-	if prs {
+	content, exists, err := storage.Get(key)
+	if err != nil {
+		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	if exists {
 		// Request matches a single item, we can return it
 		respondWithContent(writer, content)
 		return
 	}
 
-	var itemsInCollection = storage.GetCollection(key)
+	var itemsInCollection, getErr = storage.GetCollection(key)
+
+	if getErr != nil {
+		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
 
 	if len(itemsInCollection) > 0 {
 		contentItems := make([]interface{}, 0, len(itemsInCollection))

@@ -29,7 +29,7 @@ type serverConf struct {
 }
 
 // AppConfig returns the application configuration.
-func New() *Config {
+func New() Config {
 
 	var config Config
 	config.Debug = viper.GetBool("debug")
@@ -37,5 +37,5 @@ func New() *Config {
 	if config.Server.Port == 0 {
 		config.Server.Port = 8080
 	}
-	return &config
+	return config
 }

@@ -9,11 +9,16 @@ func handleDELETE(writer http.ResponseWriter, request *http.Request) {
 
 	key := getURLWithSlashRemovedIfNeeded(request)
 
-	wasPresent := storage.Remove(key)
-	if wasPresent {
-		writer.WriteHeader(http.StatusAccepted)
-		respond(writer, "")
+	wasPresent, err := storage.Remove(key)
+
+	if err != nil {
+		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 	} else {
-		http.Error(writer, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		if wasPresent {
+			writer.WriteHeader(http.StatusAccepted)
+			respond(writer, "")
+		} else {
+			http.Error(writer, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		}
 	}
 }

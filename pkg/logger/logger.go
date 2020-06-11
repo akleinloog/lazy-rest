@@ -46,7 +46,7 @@ type RequestLog struct {
 }
 
 // New initializes a new logger
-func New(config *config.Config) *Logger {
+func New(config *config.Config) Logger {
 
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 
@@ -59,7 +59,7 @@ func New(config *config.Config) *Logger {
 
 	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
 
-	return &Logger{logger: &logger}
+	return Logger{logger: &logger}
 }
 
 // Output duplicates the global logger and sets w as its output.

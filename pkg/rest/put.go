@@ -51,7 +51,11 @@ func handlePUT(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	// Valid JSON
-	storage.Store(key, content)
+	err = storage.Store(key, content)
+	if err != nil {
+		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
 
 	writer.WriteHeader(http.StatusAccepted)
 	respond(writer, "")

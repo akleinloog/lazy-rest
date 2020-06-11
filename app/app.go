@@ -18,14 +18,17 @@ package app
 import (
 	"github.com/akleinloog/lazy-rest/config"
 	"github.com/akleinloog/lazy-rest/pkg/logger"
+	"github.com/spf13/afero"
 )
 
 var (
-	Config *config.Config
-	Log    *logger.Logger
+	Config config.Config
+	Log    logger.Logger
+	Fs     afero.Fs
 )
 
 func init() {
 	Config = config.New()
-	Log = logger.New(Config)
+	Log = logger.New(&Config)
+	Fs = afero.NewMemMapFs()
 }

@@ -73,7 +73,11 @@ func handlePOST(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	for key, element := range itemsInRequest {
-		storage.Store(key, element)
+		err := storage.Store(key, element)
+		if err != nil {
+			http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
 	}
 
 	writer.WriteHeader(http.StatusCreated)
