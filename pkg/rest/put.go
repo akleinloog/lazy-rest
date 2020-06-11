@@ -3,6 +3,7 @@ package rest
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/akleinloog/lazy-rest/app"
 	"github.com/akleinloog/lazy-rest/pkg/storage"
 	"io/ioutil"
 	"net/http"
@@ -15,7 +16,7 @@ func handlePUT(writer http.ResponseWriter, request *http.Request) {
 
 	body, err := ioutil.ReadAll(request.Body)
 	if err != nil {
-		server.Logger().Error().Err(err).Msg("Unable to read request body")
+		app.Log.Error(err, "Unable to read request body")
 		writer.WriteHeader(http.StatusBadRequest)
 		respond(writer, "")
 		return
@@ -29,7 +30,7 @@ func handlePUT(writer http.ResponseWriter, request *http.Request) {
 	err = json.Unmarshal(body, &content)
 	if err != nil {
 		// Invalid JSON
-		server.Logger().Error().Err(err).Msg("Invalid JSON received")
+		app.Log.Error(err, "Invalid JSON received")
 		http.Error(writer, "Invalid JSON", http.StatusBadRequest)
 		return
 	}

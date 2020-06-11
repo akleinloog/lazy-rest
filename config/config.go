@@ -19,14 +19,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-var (
-	// configFile points to the configuration file.
-	configFile string
-
-	// DefaultConfig holds the default configuration.
-	DefaultConfig = AppConfig()
-)
-
 type Config struct {
 	Debug  bool `env:"DEBUG, defaults to false"`
 	Server serverConf
@@ -37,7 +29,7 @@ type serverConf struct {
 }
 
 // AppConfig returns the application configuration.
-func AppConfig() *Config {
+func New() *Config {
 
 	var config Config
 	config.Debug = viper.GetBool("debug")

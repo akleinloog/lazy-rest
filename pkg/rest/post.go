@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/akleinloog/lazy-rest/app"
 	"github.com/akleinloog/lazy-rest/pkg/storage"
 	"io"
 	"io/ioutil"
@@ -18,7 +19,7 @@ func handlePOST(writer http.ResponseWriter, request *http.Request) {
 
 	body, err := ioutil.ReadAll(request.Body)
 	if err != nil {
-		server.Logger().Error().Err(err).Msg("Invalid Request Body received")
+		app.Log.Error(err, "Invalid Request Body received")
 		http.Error(writer, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
@@ -38,7 +39,7 @@ func handlePOST(writer http.ResponseWriter, request *http.Request) {
 		// then the decoder will iterate over the items in the array
 		_, err = decoder.Token()
 		if err != nil {
-			server.Logger().Error().Err(err).Msg("Error parsing JSON token")
+			app.Log.Error(err, "Error parsing JSON token")
 			http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
@@ -54,7 +55,7 @@ func handlePOST(writer http.ResponseWriter, request *http.Request) {
 
 		if err != nil {
 
-			server.Logger().Error().Err(err).Msg("Invalid JSON received")
+			app.Log.Error(err, "Invalid JSON received")
 			http.Error(writer, "Invalid JSON", http.StatusBadRequest)
 			return
 
@@ -84,7 +85,7 @@ func createId() string {
 	random := make([]byte, 10)
 	n, err := io.ReadFull(rand.Reader, random)
 	if n != len(random) || err != nil {
-		server.Logger().Error().Err(err).Msg("Error while creating if")
+		app.Log.Error(err, "Error while creating if")
 		panic(err)
 	}
 

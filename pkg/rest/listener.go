@@ -3,42 +3,38 @@ package rest
 import (
 	"fmt"
 	"github.com/akleinloog/lazy-rest/app"
-	"github.com/akleinloog/lazy-rest/pkg/util/logger"
 	"net/http"
 	"os"
 )
 
 var (
-	host   string = "unknown"
-	server *app.Server
+	host = "unknown"
 )
 
 func Listen() {
 
-	server = app.Instance()
-
 	currentHost, err := os.Hostname()
 	if err != nil {
-		server.Logger().Info().Msgf("Could not determine host name:", err)
+		app.Log.Info().Msgf("Could not determine host name:", err)
 	} else {
 		host = currentHost
 	}
 
-	server.Logger().Info().Msgf("Starting Lazy REST Server on " + host)
+	app.Log.Info().Msgf("Starting Lazy REST Server on " + host)
 
 	requestHandler := http.HandlerFunc(HandleRequest)
 
-	http.Handle("/", logger.RequestLogger(requestHandler))
+	http.Handle("/", requestLogger(requestHandler))
 
-	address := fmt.Sprintf("%s:%d", "", server.Config().Server.Port)
+	address := fmt.Sprintf("%s:%d", "", app.Config.Server.Port)
 
 	err = http.ListenAndServe(address, nil)
 	if err != nil {
-		server.Logger().Fatal().Err(err)
+		app.Log.Fatal(err, "Error while listening for requests")
 	}
 }
 
-// Hello gives out a simple hello message
+// HandleRequest determines the appropriate action to take based on the http method.
 func HandleRequest(writer http.ResponseWriter, request *http.Request) {
 
 	switch request.Method {

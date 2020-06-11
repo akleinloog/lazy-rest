@@ -16,15 +16,8 @@ limitations under the License.
 package logger
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"fmt"
 	"io"
-	"io/ioutil"
-	"net"
-	"net/http"
-	"net/http/httptest"
 	"os"
 
 	"github.com/akleinloog/lazy-rest/config"
@@ -32,23 +25,13 @@ import (
 	"github.com/rs/zerolog"
 )
 
-var (
-	// LogEntryCtxKey is the context.Context key to store the request log entry.
-	//LogEntryCtxKey = &contextKey{"LogEntry"}
-
-	// DefaultLogger is called by the Logger middleware handler to log each request.
-	// Its made a package-level variable so that it can be reconfigured for custom
-	// logging configurations.
-	DefaultLogger = New(config.DefaultConfig)
-)
-
 // Logger is used for logging.
 type Logger struct {
 	logger *zerolog.Logger
 }
 
-// RequestLogEntry represents an entry in the server's log.
-type RequestLogEntry struct {
+// RequestLog is used to log http requests and their responses.
+type RequestLog struct {
 	Method       string
 	URL          string
 	UserAgent    string
@@ -77,115 +60,6 @@ func New(config *config.Config) *Logger {
 	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
 
 	return &Logger{logger: &logger}
-}
-
-// initRequestEntry initializes a new log entry for
-func initRequestEntry(request *http.Request) *RequestLogEntry {
-
-	host := request.Host
-	if host == "" && request.URL != nil {
-		host = request.URL.Host
-	}
-
-	body, err := ioutil.ReadAll(request.Body)
-	if err != nil {
-		DefaultLogger.Error().Err(err).Msg("Unable to read request body")
-	} else {
-
-		request.Header.Get("content-type")
-
-		var f interface{}
-		err := json.Unmarshal(body, &f)
-		if err != nil {
-			body = []byte(fmt.Sprintf("%q", body))
-		}
-
-		request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
-	}
-
-	//requestBody := fmt.Sprintf("%q", body)
-
-	entry := &RequestLogEntry{
-		Host:        host,
-		Method:      request.Method,
-		URL:         request.URL.String(),
-		UserAgent:   request.UserAgent(),
-		Referer:     request.Referer(),
-		Protocol:    request.Proto,
-		RemoteIP:    ipFromHostPort(request.RemoteAddr),
-		RequestBody: body,
-	}
-
-	if localAddress, ok := request.Context().Value(http.LocalAddrContextKey).(net.Addr); ok {
-		entry.ServerIP = ipFromHostPort(localAddress.String())
-	}
-
-	return entry
-}
-
-// RequestLogger is a middleware that logs the start and end of each request, along
-// with some useful data about what was requested, what the response status was,
-// and how long it took to return. When standard output is a TTY, Logger will
-// print in color, otherwise it will print in black and white. Logger prints a
-// request ID if one is provided.
-//
-// Alternatively, look at https://github.com/goware/httplog for a more in-depth
-// http-handling logger with structured logging support.
-func RequestLogger(next http.Handler) http.Handler {
-
-	fn := func(writer http.ResponseWriter, request *http.Request) {
-
-		entry := initRequestEntry(request)
-
-		rec := httptest.NewRecorder()
-
-		defer func() {
-
-			entry.Status = rec.Code
-
-			if entry.Status == 0 {
-				entry.Status = http.StatusOK
-			}
-
-			entry.ResponseBody = rec.Body.Bytes()
-
-			// this copies the recorded response to the response writer
-			for k, v := range rec.HeaderMap {
-				writer.Header()[k] = v
-			}
-			writer.WriteHeader(rec.Code)
-			rec.Body.WriteTo(writer)
-
-			DefaultLogger.Info().
-				Str("host", entry.Host).
-				Str("method", entry.Method).
-				Str("url", entry.URL).
-				Str("agent", entry.UserAgent).
-				Str("referer", entry.Referer).
-				Str("protocol", entry.Protocol).
-				Str("remoteIp", entry.RemoteIP).
-				Str("serverIp", entry.ServerIP).
-				Int("status", entry.Status).
-				RawJSON("request", entry.RequestBody).
-				RawJSON("response", entry.ResponseBody).
-				Msg("")
-		}()
-
-		next.ServeHTTP(rec, request)
-	}
-
-	return http.HandlerFunc(fn)
-}
-
-func ipFromHostPort(hp string) string {
-	h, _, err := net.SplitHostPort(hp)
-	if err != nil {
-		return ""
-	}
-	if len(h) > 0 && h[0] == '[' {
-		return h[1 : len(h)-1]
-	}
-	return h
 }
 
 // Output duplicates the global logger and sets w as its output.
@@ -227,6 +101,23 @@ func (l *Logger) Info() *zerolog.Event {
 	return l.logger.Info()
 }
 
+// LogRequest writes the info contained in a RequestLog as Info to the log stream.
+func (l *Logger) LogRequest(log *RequestLog) {
+	l.logger.Info().
+		Str("host", log.Host).
+		Str("method", log.Method).
+		Str("url", log.URL).
+		Str("agent", log.UserAgent).
+		Str("referer", log.Referer).
+		Str("protocol", log.Protocol).
+		Str("remoteIp", log.RemoteIP).
+		Str("serverIp", log.ServerIP).
+		Int("status", log.Status).
+		RawJSON("request", log.RequestBody).
+		RawJSON("response", log.ResponseBody).
+		Msg("")
+}
+
 // Warn starts a new message with warn level.
 //
 // You must call Msg on the returned event in order to send the event.
@@ -234,19 +125,17 @@ func (l *Logger) Warn() *zerolog.Event {
 	return l.logger.Warn()
 }
 
-// Error starts a new message with error level.
-//
-// You must call Msg on the returned event in order to send the event.
-func (l *Logger) Error() *zerolog.Event {
-	return l.logger.Error()
+// Error Logs a new message with error level.
+func (l *Logger) Error(err error, msg string) {
+	l.logger.Error().Err(err).Msg(msg)
 }
 
 // Fatal starts a new message with fatal level. The os.Exit(1) function
 // is called by the Msg method.
 //
 // You must call Msg on the returned event in order to send the event.
-func (l *Logger) Fatal() *zerolog.Event {
-	return l.logger.Fatal()
+func (l *Logger) Fatal(err error, msg string) {
+	l.logger.Fatal().Err(err).Msg(msg)
 }
 
 // Panic starts a new message with panic level. The message is also sent
@@ -288,9 +177,4 @@ func (l *Logger) Printf(format string, v ...interface{}) {
 // is associated, a disabled logger is returned.
 func (l *Logger) Ctx(ctx context.Context) *Logger {
 	return &Logger{logger: zerolog.Ctx(ctx)}
-}
-
-func IsJSON(str string) bool {
-	var js json.RawMessage
-	return json.Unmarshal([]byte(str), &js) == nil
 }

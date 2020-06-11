@@ -17,26 +17,15 @@ package app
 
 import (
 	"github.com/akleinloog/lazy-rest/config"
-	"github.com/akleinloog/lazy-rest/pkg/util/logger"
+	"github.com/akleinloog/lazy-rest/pkg/logger"
 )
 
-// Server represents the overall application.
-type Server struct {
-	logger *logger.Logger
-	config *config.Config
-}
+var (
+	Config *config.Config
+	Log    *logger.Logger
+)
 
-// Instance creates a new Server with config and logger..
-func Instance() *Server {
-	return &Server{logger: logger.New(config.AppConfig()), config: config.AppConfig()}
-}
-
-// Logger provides access to the global logger.
-func (app *Server) Logger() *logger.Logger {
-	return app.logger
-}
-
-// Config provides access to the global configuration.
-func (app *Server) Config() *config.Config {
-	return app.config
+func init() {
+	Config = config.New()
+	Log = logger.New(Config)
 }
