@@ -20,8 +20,6 @@ import (
 	"io"
 	"os"
 
-	"github.com/akleinloog/lazy-rest/config"
-
 	"github.com/rs/zerolog"
 )
 
@@ -46,14 +44,11 @@ type RequestLog struct {
 }
 
 // New initializes a new logger
-func New(config *config.Config) Logger {
+func New() Logger {
 
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 
 	logLevel := zerolog.InfoLevel
-	if config.Debug {
-		logLevel = zerolog.DebugLevel
-	}
 
 	zerolog.SetGlobalLevel(logLevel)
 

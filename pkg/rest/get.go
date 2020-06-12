@@ -9,7 +9,7 @@ func handleGET(writer http.ResponseWriter, request *http.Request) {
 
 	key := getURLWithSlashRemovedIfNeeded(request)
 
-	content, exists, err := storage.Get(key)
+	content, exists, err := storage.Retrieve(key)
 	if err != nil {
 		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
@@ -21,7 +21,7 @@ func handleGET(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	var itemsInCollection, getErr = storage.GetCollection(key)
+	var itemsInCollection, getErr = storage.RetrieveCollection(key)
 
 	if getErr != nil {
 		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

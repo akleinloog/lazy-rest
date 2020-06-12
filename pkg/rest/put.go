@@ -24,7 +24,7 @@ func handlePUT(writer http.ResponseWriter, request *http.Request) {
 
 	// TODO: Check Content Type / Support multiple content types
 	// memory[key] = body
-	// contentType := request.Header.Get("content-type")
+	// contentType := request.Header.Retrieve("content-type")
 
 	var content interface{}
 	err = json.Unmarshal(body, &content)

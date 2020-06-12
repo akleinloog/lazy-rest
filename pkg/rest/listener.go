@@ -26,7 +26,7 @@ func Listen() {
 
 	http.Handle("/", requestLogger(requestHandler))
 
-	address := fmt.Sprintf("%s:%d", "", app.Config.Server.Port)
+	address := fmt.Sprintf("%s:%d", "", app.Config.Port())
 
 	err = http.ListenAndServe(address, nil)
 	if err != nil {

@@ -18,29 +18,31 @@ package storage
 import (
 	"encoding/json"
 	"github.com/akleinloog/lazy-rest/app"
-	"github.com/spf13/afero"
+	"github.com/akleinloog/lazy-rest/pkg/filesystem"
 )
 
-func Get(key string) (interface{}, bool, error) {
+var fs = filesystem.New(&app.Config)
 
-	exists, err := afero.Exists(app.Fs, key)
+func Retrieve(key string) (interface{}, bool, error) {
+
+	exists, err := fs.Exists(key)
 	if err != nil {
-		app.Log.Error(err, "Error occurred while checking if content exists")
+		app.Log.Error(err, "Error occurred while checking if location exists")
 		return nil, false, err
 	}
 
 	if exists {
 
-		isDir, err := afero.IsDir(app.Fs, key)
+		isDir, err := fs.IsDir(key)
 		if err != nil {
-			app.Log.Error(err, "Error occurred while checking if directory")
+			app.Log.Error(err, "Error occurred while checking if location is a directory")
 			return nil, false, err
 		}
 		if isDir {
 			return nil, false, nil
 		}
 
-		bytes, err := afero.ReadFile(app.Fs, key)
+		bytes, err := fs.ReadFile(key)
 		if err != nil {
 			app.Log.Error(err, "Error occurred while reading content")
 			return nil, true, err
@@ -59,18 +61,18 @@ func Get(key string) (interface{}, bool, error) {
 	return nil, false, nil
 }
 
-func GetCollection(key string) (map[string]interface{}, error) {
+func RetrieveCollection(key string) (map[string]interface{}, error) {
 
 	var itemsInCollection = make(map[string]interface{})
 
-	exists, err := afero.DirExists(app.Fs, key)
+	exists, err := fs.DirExists(key)
 	if err != nil {
 		app.Log.Error(err, "Error occurred while checking if directory exists")
 		return nil, err
 	}
 
 	if exists {
-		files, err := afero.ReadDir(app.Fs, key)
+		files, err := fs.ReadDir(key)
 		if err != nil {
 			app.Log.Error(err, "Error occurred while retrieving files in directory")
 			return nil, err
@@ -79,7 +81,7 @@ func GetCollection(key string) (map[string]interface{}, error) {
 		for index := range files {
 			fileInfo := files[index]
 			if !fileInfo.IsDir() {
-				content, exists, err := Get(key + "/" + fileInfo.Name())
+				content, exists, err := Retrieve(key + "/" + fileInfo.Name())
 
 				if err != nil {
 					app.Log.Error(err, "Error occurred while retrieving individual file in directory")
@@ -104,7 +106,7 @@ func Store(key string, content interface{}) error {
 		return err
 	}
 
-	err = afero.WriteFile(app.Fs, key, bytes, 0644)
+	err = fs.WriteFile(key, bytes)
 	if err != nil {
 		app.Log.Error(err, "Error occurred while storing content")
 		return err
@@ -115,13 +117,13 @@ func Store(key string, content interface{}) error {
 
 func Remove(key string) (bool, error) {
 
-	exists, err := afero.Exists(app.Fs, key)
+	exists, err := fs.Exists(key)
 	if err != nil {
 		app.Log.Error(err, "Error occurred while checking if content exists")
 		return false, err
 	}
 	if exists {
-		err = app.Fs.Remove(key)
+		err = fs.Remove(key)
 		if err != nil {
 			app.Log.Error(err, "Error occurred while removing content")
 			return false, err
