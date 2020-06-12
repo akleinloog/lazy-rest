@@ -6,3 +6,6 @@ lazy-rest
 
 # Goland files
 .idea
+
+# Data
+data

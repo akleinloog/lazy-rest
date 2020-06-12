@@ -36,7 +36,7 @@ func TestInMemoryCanBeSetWithViper(t *testing.T) {
 	viper.Set("in-memory", true)
 	config := New()
 	assert.Equal(t, true, config.InMemory())
-	viper.Set("port", nil)
+	viper.Set("in-memory", nil)
 }
 
 func TestInMemoryCanBeSetWithEnvironmentVariable(t *testing.T) {

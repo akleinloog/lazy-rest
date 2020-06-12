@@ -100,7 +100,7 @@ func RetrieveCollection(key string) (map[string]interface{}, error) {
 
 func Store(key string, content interface{}) error {
 
-	bytes, err := json.Marshal(content)
+	bytes, err := json.MarshalIndent(content, "", "\t")
 	if err != nil {
 		app.Log.Error(err, "Error marshalling content to JSON")
 		return err

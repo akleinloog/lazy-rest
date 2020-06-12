@@ -4,6 +4,7 @@ import (
 	"github.com/akleinloog/lazy-rest/config"
 	"github.com/spf13/afero"
 	"os"
+	"path"
 )
 
 var (
@@ -45,6 +46,21 @@ func (*Fs) ReadDir(location string) ([]os.FileInfo, error) {
 }
 
 func (*Fs) WriteFile(location string, data []byte) error {
+
+	var directory = path.Dir(location)
+
+	exists, err := afero.DirExists(fs(), directory)
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		err = fs().MkdirAll(directory, 0744)
+		if err != nil {
+			return err
+		}
+	}
+
 	return afero.WriteFile(fs(), location, data, 0644)
 }
 
