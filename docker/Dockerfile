@@ -17,5 +17,6 @@ LABEL maintainer="arnoud@kleinloog.ch" \
     vcs_url="https://github.com/akleinloog/lazy-rest" \
     vcs-ref=${VCS_REF}
 COPY --from=builder /go/src/lazy-rest/lazy-rest .
+VOLUME ["/data"]
 EXPOSE 8080
 CMD ["./lazy-rest", "serve"]
