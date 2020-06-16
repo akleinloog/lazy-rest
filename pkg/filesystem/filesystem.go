@@ -55,7 +55,7 @@ func (*Fs) WriteFile(location string, data []byte) error {
 	}
 
 	if !exists {
-		err = fs().MkdirAll(directory, 0744)
+		err = fs().MkdirAll(directory, 0777)
 		if err != nil {
 			return err
 		}
